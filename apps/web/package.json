@@ -9,20 +9,23 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.9.1",
     "@stem/database": "workspace:*",
     "@stem/shared": "workspace:*",
+    "@tailwindcss/typography": "^0.5.20",
+    "js-cookie": "^3.0.5",
+    "lucide-react": "^0.468.0",
     "next": "16.2.9",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.54.0",
-    "@hookform/resolvers": "^3.9.1",
-    "zustand": "^5.0.2",
-    "lucide-react": "^0.468.0",
-    "js-cookie": "^3.0.5"
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@types/js-cookie": "^3.0.6",
     "@tailwindcss/postcss": "^4",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

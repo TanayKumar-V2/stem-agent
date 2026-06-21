@@ -1,12 +1,14 @@
 'use client';
 
+import { ChatSidebar } from '@/components/chat/sidebar';
+import { ChatMessageArea } from '@/components/chat/message-area';
 import { useAuthStore } from '@/store/auth.store';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 
 export default function ChatPage() {
-  const user = useAuthStore((state) => state.user);
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const router = useRouter();
 
@@ -22,12 +24,19 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
-      <h1 className="text-3xl font-bold">Welcome, {user?.name || 'User'}!</h1>
-      <p className="text-muted-foreground">You are now logged in and viewing the protected chat area.</p>
-      <Button onClick={handleLogout} variant="outline">
-        Logout
-      </Button>
+    <div className="flex h-screen w-full overflow-hidden">
+      <ChatSidebar />
+      <div className="flex-1 flex flex-col relative">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="absolute top-4 right-4 z-10 opacity-50 hover:opacity-100"
+          onClick={handleLogout}
+        >
+          <LogOut size={18} />
+        </Button>
+        <ChatMessageArea />
+      </div>
     </div>
   );
 }

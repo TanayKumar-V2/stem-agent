@@ -1,11 +1,10 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto, LoginDto } from '@stem/shared';
 import * as bcrypt from 'bcryptjs';
 import { nanoid } from 'nanoid';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { RedisService } from '../redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -13,7 +12,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private redisService: RedisService,
     private configService: ConfigService,
   ) {}
 
@@ -37,13 +36,14 @@ export class AuthService {
   }
 
   async refreshTokens(refreshToken: string) {
-    const userId = await this.cacheManager.get<string>(`refresh_token:${refreshToken}`);
+    const redis = this.redisService.getClient();
+    const userId = await redis.get<string>(`refresh_token:${refreshToken}`);
     if (!userId) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
     // Blacklist the old refresh token
-    await this.cacheManager.del(`refresh_token:${refreshToken}`);
+    await redis.del(`refresh_token:${refreshToken}`);
 
     const user = await this.usersService.findById(userId);
     if (!user) {
@@ -55,7 +55,8 @@ export class AuthService {
 
   async logout(refreshToken: string) {
     if (refreshToken) {
-      await this.cacheManager.del(`refresh_token:${refreshToken}`);
+      const redis = this.redisService.getClient();
+      await redis.del(`refresh_token:${refreshToken}`);
     }
     return { success: true };
   }
@@ -70,8 +71,9 @@ export class AuthService {
     const refreshToken = nanoid(64);
     
     // Store refresh token in Redis with 7 days expiration
-    const ttlMillis = 7 * 24 * 60 * 60 * 1000;
-    await this.cacheManager.set(`refresh_token:${refreshToken}`, userId, ttlMillis);
+    const redis = this.redisService.getClient();
+    const ttlSeconds = 7 * 24 * 60 * 60;
+    await redis.set(`refresh_token:${refreshToken}`, userId, { ex: ttlSeconds });
 
     return {
       accessToken,
